@@ -6,6 +6,7 @@ from params import *
 def get_data(data_path) -> pd.DataFrame:
 
     df = pd.read_csv(data_path)
+    df["index"]=df.index
     return df
 
 
@@ -34,9 +35,10 @@ def load_data_to_bq(
 
     print(f"✅ Data saved to bigquery, with shape {data.shape}")
 
-# path = "raw_data/validation_data/ISIC2018_Task3_Validation_GroundTruth/ISIC2018_Task3_Validation_GroundTruth.csv"
+path = "raw_data/HAM10000_metadata.csv"
+#path = "raw_data/hmnist_28_28_RGB.csv"
 
-# load_data_to_bq(get_data(path),f"{GCP_PROJECT}",f"{BQ_DATASET}","validation_result_encoding",True)
+load_data_to_bq(get_data(path),f"{GCP_PROJECT}",f"{BQ_DATASET}","train_metadata",True)
 
 
 import os
