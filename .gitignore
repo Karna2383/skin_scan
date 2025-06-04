@@ -193,6 +193,13 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# PyCharm specific
+*.iml
+*.iws
+*.ipr
+.idea/*
+.idea/workspace.xml
+
 raw_data/*
 !raw_data/.gitkeep
 *.DS_Store
