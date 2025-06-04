@@ -197,7 +197,7 @@ cython_debug/
 *.iml
 *.iws
 *.ipr
-*.idea
+*.idea/*
 
 raw_data/*
 !raw_data/.gitkeep
