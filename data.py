@@ -35,10 +35,10 @@ def load_data_to_bq(
 
     print(f"✅ Data saved to bigquery, with shape {data.shape}")
 
-path = "raw_data/HAM10000_metadata.csv"
-#path = "raw_data/hmnist_28_28_RGB.csv"
+# path = "raw_data/HAM10000_metadata.csv"
+# #path = "raw_data/hmnist_28_28_RGB.csv"
 
-load_data_to_bq(get_data(path),f"{GCP_PROJECT}",f"{BQ_DATASET}","train_metadata",True)
+# load_data_to_bq(get_data(path),f"{GCP_PROJECT}",f"{BQ_DATASET}","train_metadata",True)
 
 
 import os
@@ -66,3 +66,23 @@ def upload_images_folder(local_folder, bucket_name, destination_folder):
     print(f"\n🎉 Uploaded {uploaded_count} .jpg files to '{destination_folder}' in bucket '{bucket_name}'")
 
 #upload_images_folder("raw_data/test_data/ISIC2018_Task3_Test_Input", BUCKET_NAME, "test_all_images")
+def get_metadata_from_bq(
+        gcp_project="skin-scan-461716",
+        query="""
+        SELECT *
+        FROM `skin-scan-461716.skin_scan.train_metadata`
+    """,
+    ) -> pd.DataFrame:
+    """
+    Retrieve `query` data from BigQuery
+    """
+    client = bigquery.Client(project=gcp_project)
+    query_job = client.query(query)
+    result = query_job.result()
+    df = result.to_dataframe()
+    return df
+
+query_metadata = f"""
+        SELECT *
+        FROM `skin-scan-461716.skin_scan.train_metadata`
+    """
