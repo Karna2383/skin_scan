@@ -203,3 +203,4 @@ cython_debug/
 raw_data/*
 !raw_data/.gitkeep
 *.DS_Store
+llm_model_downloads/
