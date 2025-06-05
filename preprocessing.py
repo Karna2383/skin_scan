@@ -4,16 +4,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder
 
-
 def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
-
     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
     cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
     preprocessor = ColumnTransformer([
+    ('passthrough', 'passthrough', ['image_id']),
     ( 'age', age_pipeline, ['age']),
     ('cat', cat_pipeline,['sex','localization'])
     ])
-    preprocessor.set_output(transform="pandas")
+    preprocessor.set_output(transform='pandas')
     df = preprocessor.fit_transform(df)
     return df
 
@@ -21,6 +20,7 @@ def run_y_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_pipeline.set_output(transform="pandas")
+    y_pipeline.set_output(transform='pandas')
     df = y_pipeline.fit_transform(df)
     return df
 
