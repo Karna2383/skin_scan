@@ -6,25 +6,25 @@ from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder
 
 
 def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
-    '''Processes the X dataframe so that all the values are Numeric and model ready'''
+
     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
-    sex_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
-    loc_pipeline = Pipeline([('lbl_E', LabelEncoder())])
+    cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
     preprocessor = ColumnTransformer([
-        ('age', age_pipeline, ['age']),
-        ('sex', sex_pipeline, ['sex']),
-        ('loc', loc_pipeline, ['localization'])
+    ( 'age', age_pipeline, ['age']),
+    ('cat', cat_pipeline,['sex','localization'])
     ])
+    preprocessor.set_output(transform="pandas")
     df = preprocessor.fit_transform(df)
     return df
 
 def run_y_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
+    y_pipeline.set_output(transform="pandas")
     df = y_pipeline.fit_transform(df)
     return df
 
-def preprocess_metadata(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, pd.DataFrame]:
     '''preprocess's metadata from the skin-cancer-mnist-ham10000 dataset
     returns a preprocessed version of X and y'''
     df = df.drop(columns=[col for col in ['dx_type','lesion_id'] if col in df.columns])
@@ -35,9 +35,12 @@ def preprocess_metadata(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     #drop unknowns
     df = df[df['localization'] != 'unknown']
     # return processed df
-    y = df['dx']
-    X = df.drop(columns=['dx'])
-    X = run_X_pipeline(X)
-    y = run_y_pipeline(y)
-    return X, y
+    if split:
+        y = df[['dx']]
+        X = df.drop(columns=['dx'])
+        X = run_X_pipeline(X)
+        y = run_y_pipeline(y)
+        return X, y
+    else:
+        return df
 
