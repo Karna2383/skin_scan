@@ -5,11 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94c51f63-9525-452a-ac4d-0589f4cf5661" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/preprocessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/baseline_model.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/baseline_model.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/cs_notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/cs_notebook.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/building_dual_model.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/building_dual_model.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +45,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "cs__day__3",
+    "git-widget-placeholder": "cs__day4__round3",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
