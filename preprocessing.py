@@ -20,7 +20,6 @@ def run_y_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_pipeline.set_output(transform="pandas")
-    y_pipeline.set_output(transform='pandas')
     df = y_pipeline.fit_transform(df)
     return df
 
@@ -34,7 +33,9 @@ def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, p
     df = df[df['sex'] != 'unknown']
     #drop unknowns
     df = df[df['localization'] != 'unknown']
+
     # return processed df
+    # TODO put the image processing part here, this should separate out of metadata and get the array here!
     if split:
         y = df[['dx']]
         X = df.drop(columns=['dx'])
