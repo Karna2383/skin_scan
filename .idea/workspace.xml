@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94c51f63-9525-452a-ac4d-0589f4cf5661" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/preprocessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/baseline_model.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/baseline_model.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/cs_notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/cs_notebook.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/New_prompt.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/New_prompt.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/practice-Copy1.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/practice-Copy1.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +44,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "cs__day__3",
+    "git-widget-placeholder": "Sri__day4",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -56,6 +53,14 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-fb887030ada0-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.21565.199" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="94c51f63-9525-452a-ac4d-0589f4cf5661" name="Changes" comment="" />
