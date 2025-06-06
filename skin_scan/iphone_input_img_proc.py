@@ -22,3 +22,9 @@ def process_input_image(path: os.path) -> np.array:
     img_clean = Image.new(img_rotated.mode, img_rotated.size)
     img_clean.putdata(list(img_rotated.getdata()))
 
+    # apply the same preprocessing that the dataset gets
+    img_array = process_image(img_clean, 96, 96)
+
+    #return the np.array of the image
+    return img_array
+
