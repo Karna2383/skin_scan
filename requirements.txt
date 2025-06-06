@@ -10,3 +10,11 @@ scikit-learn
 db-dtypes
 google-cloud-bigquery
 google-cloud-bigquery-storage
+
+
+
+fastapi
+uvicorn
+openai
+pillow
+python-dotenv
