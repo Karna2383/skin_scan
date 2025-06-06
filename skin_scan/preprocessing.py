@@ -2,29 +2,54 @@ import pandas as pd
 #Pipline Imports
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder
-
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
+from google.cloud import storage
+from PIL import Image
+import io
+import os
+import numpy as np
 
 def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
-    '''Processes the X dataframe so that all the values are Numeric and model ready'''
     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
-    sex_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
-    loc_pipeline = Pipeline([('lbl_E', LabelEncoder())])
+    cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
     preprocessor = ColumnTransformer([
-        ('age', age_pipeline, ['age']),
-        ('sex', sex_pipeline, ['sex']),
-        ('loc', loc_pipeline, ['localization'])
+    ( 'age', age_pipeline, ['age']),
+    ('cat', cat_pipeline,['sex','localization'])
     ])
-    df = preprocessor.fit_transform(df)
-    return df
+    array = preprocessor.fit_transform(df)
+    return array
 
-def run_y_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     df = y_pipeline.fit_transform(df)
     return df
 
-def preprocess_metadata(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
+    """Retrieves the images from the bucket and
+    returns a dataframe with image_id and a numpy array of selected shapes (height, width, 3)"""
+    print("Hello")
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blobs = bucket.list_blobs(prefix="train_all_images/")
+    images = [blob.name for blob in blobs if blob.name.lower().endswith(".jpg")]
+    image_name = []
+    resized_array = []
+    for index, image in enumerate(images):
+        blob = bucket.blob(image)
+        image_bytes = blob.download_as_bytes()
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        img = img.resize((width, height))
+        resized_array.append(np.array(img))
+        image_name.append(os.path.basename(image).split('.')[0])
+    output_df = pd.DataFrame({
+    'image_id': image_name,
+    'resized_array': resized_array
+})
+    return output_df
+
+
+def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, pd.DataFrame]:
     '''preprocess's metadata from the skin-cancer-mnist-ham10000 dataset
     returns a preprocessed version of X and y'''
     df = df.drop(columns=[col for col in ['dx_type','lesion_id'] if col in df.columns])
@@ -34,10 +59,23 @@ def preprocess_metadata(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     df = df[df['sex'] != 'unknown']
     #drop unknowns
     df = df[df['localization'] != 'unknown']
+    df = df.sort_values(by="image_id")
     # return processed df
-    y = df['dx']
-    X = df.drop(columns=['dx'])
-    X = run_X_pipeline(X)
-    y = run_y_pipeline(y)
-    return X, y
+    # TODO put the image processing part here, this should separate out of metadata and get the array here!
+    return df
+  
 
+def prepare_data_for_model(processed_metadata: pd.DataFrame, resized_images: pd.DataFrame) -> tuple[pd.DataFrame, np.array, np.array]:
+    full_df = processed_metadata.merge(resized_images, how="left", on="image_id")
+    y = full_df[["dx"]]
+    y = run_y_pipeline(y)
+    X = full_df["resized_array"]
+    X_np = np.array(X)
+    X_ready = []
+    for row in X_np:
+        X_ready.append(row[0])
+    X_images = np.array(X_ready)
+    X_metadata = full_df.drop(columns=[col for col in ['dx_type','lesion_id',"dx","resized_image","image_id"]
+                                       if col in full_df.columns])
+    X_metadata = run_X_pipeline(X_metadata)
+    return X_metadata, X_images, y
