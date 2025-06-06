@@ -63,7 +63,7 @@ def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, p
     # return processed df
     # TODO put the image processing part here, this should separate out of metadata and get the array here!
     return df
-  
+
 
 def prepare_data_for_model(processed_metadata: pd.DataFrame) -> tuple[pd.DataFrame, np.array, np.array]:
     y = processed_metadata[["dx"]]
