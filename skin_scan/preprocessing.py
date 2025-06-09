@@ -54,13 +54,26 @@ def save_class_names_to_gcs(class_names):
 
     print(f"✅ class_names saved to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
 
+def load_class_names_from_gcs():
+    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(CLASS_NAMES_PATH))
+
+    # Download from GCS
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob(CLASS_NAMES_PATH)
+    blob.download_to_filename(local_path)
+
+    # Load the class names
+    class_names = joblib.load(local_path)
+    print(f"✅ class_names loaded from GCS")
+    return class_names
+
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_encoded = y_pipeline.fit_transform(df)
     class_names = y_pipeline.named_steps['ohe'].categories_[0]
     save_class_names_to_gcs(class_names)
-
     return y_encoded
 
 def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
