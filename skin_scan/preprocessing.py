@@ -8,8 +8,9 @@ from PIL import Image
 import io
 import os
 import numpy as np
+import joblib
 
-def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+def create_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
     cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
     preprocessor = ColumnTransformer([
@@ -17,17 +18,13 @@ def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     ('cat', cat_pipeline,['sex','localization'])
     ])
     array = preprocessor.fit_transform(df)
-    return array, preprocessor
+    save_preprocessor_to_gcs(preprocessor)
+    return array
 
-# def run_X_pred_pipeline(df: pd.DataFrame) -> pd.DataFrame:
-#     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
-#     cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
-#     preprocessor = ColumnTransformer([
-#     ( 'age', age_pipeline, ['age']),
-#     ('cat', cat_pipeline,['sex','localization'])
-#     ])
-#     array = preprocessor.transform(df)
-#     return array
+def run_X_pipeline(df: pd.DataFrame):
+    preprocessor = load_preprocessor_from_gcs()
+    data = preprocessor.transform(df)
+    return data
 
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
@@ -81,5 +78,64 @@ def prepare_data_for_model(processed_metadata: pd.DataFrame) -> tuple[pd.DataFra
     y, class_names = run_y_pipeline(y)
     X_metadata = processed_metadata.drop(columns=[col for col in ['dx_type','lesion_id',"dx","resized_image","image_id"]
                                        if col in processed_metadata.columns])
-    X_metadata, preprocessor = run_X_pipeline(X_metadata)
-    return X_metadata, y, preprocessor, class_names
+    X_metadata = run_X_pipeline(X_metadata)
+    return X_metadata, y, class_names
+
+
+# Constants
+BUCKET_NAME = "skin_scan_mohnatz"
+BLOB_PATH = "models/preprocessor_joblib"
+LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
+
+def save_preprocessor_to_gcs(preprocessor: Pipeline):
+    """
+    Save a scikit-learn preprocessor locally and upload it to GCS.
+    """
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+
+    # Ensure local directory exists
+    os.makedirs(LOCAL_REGISTRY_PATH, exist_ok=True)
+    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(BLOB_PATH))
+
+    try:
+        # Save model locally (just once!)
+        joblib.dump(preprocessor, local_path)
+        print(f"✅ Preprocessor saved locally at {local_path}")
+
+        # Upload to GCS
+        blob = bucket.blob(BLOB_PATH)
+        blob.upload_from_filename(local_path)
+        print(f"✅ Preprocessor uploaded to GCS at gs://{BUCKET_NAME}/{BLOB_PATH}")
+
+    except Exception as e:
+        print(f"❌ Failed to save model to GCS: {e}")
+
+def load_preprocessor_from_gcs() -> Pipeline:
+    """
+    Download a scikit-learn preprocessor from GCS and load it.
+
+    Returns:
+        The loaded preprocessor (Pipeline or ColumnTransformer), or None if failed.
+    """
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob(BLOB_PATH)
+
+    # Ensure local directory exists
+    os.makedirs(LOCAL_REGISTRY_PATH, exist_ok=True)
+    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(BLOB_PATH))
+
+    try:
+        # Download the file from GCS
+        blob.download_to_filename(local_path)
+        print(f"✅ Preprocessor downloaded from GCS to {local_path}")
+
+        # Load the preprocessor
+        preprocessor = joblib.load(local_path)
+        print("✅ Preprocessor successfully loaded from local file")
+        return preprocessor
+
+    except Exception as e:
+        print(f"❌ Failed to load preprocessor from GCS: {e}")
+        return None
