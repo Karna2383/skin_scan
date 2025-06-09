@@ -1,7 +1,7 @@
 import pandas as pd
 from colorama import Fore, Style
 from google.cloud import bigquery
-from params import *
+from skin_scan.params import *
 
 def get_data(data_path) -> pd.DataFrame:
 

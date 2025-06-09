@@ -8,9 +8,10 @@ def process_image(image, width, height):
     img_array = np.array(img_converted_resized)
     return img_array
 
-def process_input_image() -> np.array:
+def process_input_image(image) -> np.array:
     # Open the HEIC image
-    img = Image.open('../raw_data/IMG_1521.jpg')
+    # img = Image.open('../raw_data/IMG_1521.jpg')
+    img = image
 
     # Rotate 90 degrees counterclockwise
     img_rotated = img.rotate(90, expand=True)
