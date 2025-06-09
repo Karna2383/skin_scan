@@ -10,6 +10,14 @@ import os
 import numpy as np
 import joblib
 
+def process_input_image(image: Image.Image) -> np.ndarray:
+    """
+    Resizes and normalizes a skin lesion PIL image to (96, 96, 3).
+    """
+    resized_image = image.resize((96, 96))
+    image_array = np.array(resized_image).astype("float32") / 255.0
+    return image_array
+
 def create_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
     cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
@@ -26,12 +34,34 @@ def run_X_pipeline(df: pd.DataFrame):
     data = preprocessor.transform(df)
     return data
 
+BUCKET_NAME = "skin_scan_mohnatz"
+CLASS_NAMES_PATH = "models/class_names.joblib"
+LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
+
+def save_class_names_to_gcs(class_names):
+    # Ensure local registry exists
+    os.makedirs(LOCAL_REGISTRY_PATH, exist_ok=True)
+    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(CLASS_NAMES_PATH))
+
+    # Save locally
+    joblib.dump(class_names, local_path)
+
+    # Upload to GCS
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob(CLASS_NAMES_PATH)
+    blob.upload_from_filename(local_path)
+
+    print(f"✅ class_names saved to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
+
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_encoded = y_pipeline.fit_transform(df)
     class_names = y_pipeline.named_steps['ohe'].categories_[0]
-    return y_encoded, class_names
+    save_class_names_to_gcs(class_names)
+
+    return y_encoded
 
 def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
     """Retrieves the images from the bucket and
