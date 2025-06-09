@@ -65,33 +65,3 @@ def load_model_from_gcs():
     except Exception as e:
         print(f"❌ Failed to load model from GCS: {e}")
         return None
-
-
-from google.cloud import storage
-from tensorflow import keras
-import os
-
-
-def save_model_to_gcs(model):
-    """
-    Save a Keras model locally and upload it to GCS.
-    """
-    client = storage.Client()
-    bucket = client.bucket(BUCKET_NAME)
-
-    # Ensure local directory exists
-    os.makedirs(LOCAL_REGISTRY_PATH, exist_ok=True)
-    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(BLOB_PATH))
-
-    try:
-        # Save model locally
-        model.save(local_path)
-        print(f"✅ Model saved locally at {local_path}")
-
-        # Upload to GCS
-        blob = bucket.blob(BLOB_PATH)
-        blob.upload_from_filename(local_path)
-        print(f"✅ Model uploaded to GCS at gs://{BUCKET_NAME}/{BLOB_PATH}")
-
-    except Exception as e:
-        print(f"❌ Failed to save model to GCS: {e}")
