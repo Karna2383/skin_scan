@@ -1,6 +1,12 @@
 import numpy as np
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, concatenate
+<<<<<<< HEAD
+=======
+import os
+from google.cloud import storage
+from tensorflow import keras
+>>>>>>> f6db7bf2caf2750726483ed37bd71f43f9042983
 
 def create_model() -> Model:
     # Image Branch
@@ -28,6 +34,7 @@ def create_model() -> Model:
 def fit_model(X_images: np.array, X_metadata: np.array, y: np.array) -> Model:
     model = create_model()
     model.fit([X_images, X_metadata], y, epochs=20, batch_size=32, validation_split=0.2)
+<<<<<<< HEAD
     return model
 
 def predict(X_images: np.array, X_metadata: np.array, model: Model):
@@ -38,6 +45,15 @@ import os
 from google.cloud import storage
 from tensorflow import keras
 
+=======
+    save_model_to_gcs(model)
+
+def predict(X_images: np.array, X_metadata: np.array):
+    model = load_model_from_gcs()
+    prediction = model.predict([X_images, X_metadata])
+    return prediction
+
+>>>>>>> f6db7bf2caf2750726483ed37bd71f43f9042983
 # Constants
 BUCKET_NAME = "skin_scan_mohnatz"
 BLOB_PATH = "models/96_96_metadata_friday_model.keras"
