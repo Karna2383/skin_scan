@@ -3,12 +3,14 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
-from google.cloud import storage
 from PIL import Image
 import io
 import os
 import numpy as np
 import joblib
+import json
+from io import BytesIO
+from google.cloud import storage
 
 def process_input_image(image: Image.Image) -> np.ndarray:
     """
@@ -41,42 +43,56 @@ LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
 import joblib
 from io import BytesIO
 from google.cloud import storage
+import json
+
+
+BUCKET_NAME = "skin_scan_mohnatz"
+CLASS_NAMES_PATH = "models/class_names.json"
 
 def save_class_names_to_gcs(class_names):
-    # Serialize the class_names object to a bytes buffer
-    buffer = BytesIO()
-    joblib.dump(class_names, buffer)
-    buffer.seek(0)  # Reset buffer pointer to the beginning
+    """
+    Saves class names (list or array) to GCS in JSON format.
+    """
+    try:
+        json_str = json.dumps(class_names)
+        buffer = BytesIO(json_str.encode('utf-8'))
 
-    # Upload directly to GCS
-    client = storage.Client()
-    bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob(CLASS_NAMES_PATH)
-    blob.upload_from_file(buffer, content_type='application/octet-stream')
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob(CLASS_NAMES_PATH)
+        blob.upload_from_file(buffer, content_type='application/json')
 
-    print(f"✅ class_names uploaded to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
+        print(f"✅ class_names saved to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
+    except Exception as e:
+        print(f"❌ Failed to save class_names to GCS: {e}")
 
 def load_class_names_from_gcs():
-    # Download the blob content into memory
-    client = storage.Client()
-    bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob(CLASS_NAMES_PATH)
+    """
+    Loads class names from GCS, assuming they are stored as JSON.
+    Returns:
+        list of class names
+    """
+    try:
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob(CLASS_NAMES_PATH)
 
-    buffer = BytesIO()
-    blob.download_to_file(buffer)
-    buffer.seek(0)
+        json_bytes = blob.download_as_bytes()
+        class_names = json.loads(json_bytes.decode('utf-8'))
 
-    # Deserialize the object
-    class_names = joblib.load(buffer)
-    print("✅ class_names loaded from GCS")
-    return class_names
+        print("✅ class_names loaded from GCS")
+        return class_names
+    except Exception as e:
+        print(f"❌ Failed to load class_names from GCS: {e}")
+        return None
 
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_encoded = y_pipeline.fit_transform(df)
-    class_names = y_pipeline.named_steps['ohe'].categories_[0]
-    save_class_names_to_gcs(class_names)
+    # print(list(y_pipeline.named_steps['ohe'].categories_[0]))
+    # class_names = y_pipeline.named_steps['ohe'].categories_[0]
+    # save_class_names_to_gcs(class_names)
     return y_encoded
 
 def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
