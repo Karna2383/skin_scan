@@ -64,7 +64,8 @@ async def predict(
         predicted_probs = result[0]
 
         # ✅ Format result
-        class_names = preprocessing.load_class_names_from_gcs()
+        # class_names = preprocessing.load_class_names_from_gcs()
+        class_names = {'1':'one','2':'two','3':'three','4':'four','5':'five','6':'six','7':'seven'}
         class_prob_dict = dict(zip(class_names, predicted_probs))
         sorted_result = dict(sorted(class_prob_dict.items(), key=lambda x: x[1], reverse=True))
         pretty_result = {k: round(float(v), 3) for k, v in sorted_result.items()}
