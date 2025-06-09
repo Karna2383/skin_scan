@@ -38,34 +38,37 @@ BUCKET_NAME = "skin_scan_mohnatz"
 CLASS_NAMES_PATH = "models/class_names.joblib"
 LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
 
+import joblib
+from io import BytesIO
+from google.cloud import storage
+
 def save_class_names_to_gcs(class_names):
-    # Ensure local registry exists
-    os.makedirs(LOCAL_REGISTRY_PATH, exist_ok=True)
-    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(CLASS_NAMES_PATH))
+    # Serialize the class_names object to a bytes buffer
+    buffer = BytesIO()
+    joblib.dump(class_names, buffer)
+    buffer.seek(0)  # Reset buffer pointer to the beginning
 
-    # Save locally
-    joblib.dump(class_names, local_path)
-
-    # Upload to GCS
+    # Upload directly to GCS
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
     blob = bucket.blob(CLASS_NAMES_PATH)
-    blob.upload_from_filename(local_path)
+    blob.upload_from_file(buffer, content_type='application/octet-stream')
 
-    print(f"✅ class_names saved to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
+    print(f"✅ class_names uploaded to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
 
 def load_class_names_from_gcs():
-    local_path = os.path.join(LOCAL_REGISTRY_PATH, os.path.basename(CLASS_NAMES_PATH))
-
-    # Download from GCS
+    # Download the blob content into memory
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
     blob = bucket.blob(CLASS_NAMES_PATH)
-    blob.download_to_filename(local_path)
 
-    # Load the class names
-    class_names = joblib.load(local_path)
-    print(f"✅ class_names loaded from GCS")
+    buffer = BytesIO()
+    blob.download_to_file(buffer)
+    buffer.seek(0)
+
+    # Deserialize the object
+    class_names = joblib.load(buffer)
+    print("✅ class_names loaded from GCS")
     return class_names
 
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
