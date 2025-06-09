@@ -17,13 +17,24 @@ def run_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     ('cat', cat_pipeline,['sex','localization'])
     ])
     array = preprocessor.fit_transform(df)
-    return array
+    return array, preprocessor
+
+# def run_X_pred_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+#     age_pipeline = Pipeline([('scaler', MinMaxScaler())])
+#     cat_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop='first'))])
+#     preprocessor = ColumnTransformer([
+#     ( 'age', age_pipeline, ['age']),
+#     ('cat', cat_pipeline,['sex','localization'])
+#     ])
+#     array = preprocessor.transform(df)
+#     return array
 
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
-    df = y_pipeline.fit_transform(df)
-    return df
+    y_encoded = y_pipeline.fit_transform(df)
+    class_names = y_pipeline.named_steps['ohe'].categories_[0]
+    return y_encoded, class_names
 
 def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
     """Retrieves the images from the bucket and
@@ -63,12 +74,12 @@ def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, p
     # return processed df
     # TODO put the image processing part here, this should separate out of metadata and get the array here!
     return df
-  
+
 
 def prepare_data_for_model(processed_metadata: pd.DataFrame) -> tuple[pd.DataFrame, np.array, np.array]:
     y = processed_metadata[["dx"]]
-    y = run_y_pipeline(y)
+    y, class_names = run_y_pipeline(y)
     X_metadata = processed_metadata.drop(columns=[col for col in ['dx_type','lesion_id',"dx","resized_image","image_id"]
                                        if col in processed_metadata.columns])
-    X_metadata = run_X_pipeline(X_metadata)
-    return X_metadata, y
+    X_metadata, preprocessor = run_X_pipeline(X_metadata)
+    return X_metadata, y, preprocessor, class_names
