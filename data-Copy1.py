@@ -71,6 +71,7 @@ def get_metadata_from_bq(
         query="""
         SELECT *
         FROM `skin-scan-461716.skin_scan.train_metadata`
+        ORDER BY image_id
     """,
     ) -> pd.DataFrame:
     """
