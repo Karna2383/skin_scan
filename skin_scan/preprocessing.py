@@ -29,14 +29,15 @@ def create_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     save_preprocessor_to_gcs(preprocessor)
     return array
 
+BUCKET_NAME = "skin_scan_mohnatz"
+CLASS_NAMES_PATH = "models/class_names.joblib"
+LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
+
 def run_X_pipeline(df: pd.DataFrame):
     preprocessor = load_preprocessor_from_gcs()
     data = preprocessor.transform(df)
     return data
 
-BUCKET_NAME = "skin_scan_mohnatz"
-CLASS_NAMES_PATH = "models/class_names.joblib"
-LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
 
 import joblib
 from io import BytesIO
