@@ -32,7 +32,6 @@ def create_X_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     return array
 
 BUCKET_NAME = "skin_scan_mohnatz"
-CLASS_NAMES_PATH = "models/class_names.joblib"
 LOCAL_REGISTRY_PATH = "preprocessing_pipeline"
 
 def run_X_pipeline(df: pd.DataFrame):
@@ -47,53 +46,10 @@ from google.cloud import storage
 import json
 
 
-BUCKET_NAME = "skin_scan_mohnatz"
-CLASS_NAMES_PATH = "models/class_names.json"
-
-def save_class_names_to_gcs(class_names):
-    """
-    Saves class names (list or array) to GCS in JSON format.
-    """
-    try:
-        json_str = json.dumps(class_names)
-        buffer = BytesIO(json_str.encode('utf-8'))
-
-        client = storage.Client()
-        bucket = client.bucket(BUCKET_NAME)
-        blob = bucket.blob(CLASS_NAMES_PATH)
-        blob.upload_from_file(buffer, content_type='application/json')
-
-        print(f"✅ class_names saved to GCS at gs://{BUCKET_NAME}/{CLASS_NAMES_PATH}")
-    except Exception as e:
-        print(f"❌ Failed to save class_names to GCS: {e}")
-
-def load_class_names_from_gcs():
-    """
-    Loads class names from GCS, assuming they are stored as JSON.
-    Returns:
-        list of class names
-    """
-    try:
-        client = storage.Client()
-        bucket = client.bucket(BUCKET_NAME)
-        blob = bucket.blob(CLASS_NAMES_PATH)
-
-        json_bytes = blob.download_as_bytes()
-        class_names = json.loads(json_bytes.decode('utf-8'))
-
-        print("✅ class_names loaded from GCS")
-        return class_names
-    except Exception as e:
-        print(f"❌ Failed to load class_names from GCS: {e}")
-        return None
-
 def run_y_pipeline(df: pd.DataFrame) -> np.array:
     '''Processes the y dataframe so that all the values are Numeric and model ready'''
     y_pipeline = Pipeline([('ohe', OneHotEncoder(sparse_output=False, drop=None))])
     y_encoded = y_pipeline.fit_transform(df)
-    # print(list(y_pipeline.named_steps['ohe'].categories_[0]))
-    # class_names = y_pipeline.named_steps['ohe'].categories_[0]
-    # save_class_names_to_gcs(class_names)
     return y_encoded
 
 def preprocess_images(width:int, height:int, bucket_name="skin_scan_mohnatz") -> pd.DataFrame:
@@ -138,11 +94,11 @@ def preprocess_metadata(df: pd.DataFrame, split=True):# -> tuple[pd.DataFrame, p
 
 def prepare_data_for_model(processed_metadata: pd.DataFrame) -> tuple[pd.DataFrame, np.array, np.array]:
     y = processed_metadata[["dx"]]
-    y, class_names = run_y_pipeline(y)
+    y = run_y_pipeline(y)
     X_metadata = processed_metadata.drop(columns=[col for col in ['dx_type','lesion_id',"dx","resized_image","image_id"]
                                        if col in processed_metadata.columns])
     X_metadata = run_X_pipeline(X_metadata)
-    return X_metadata, y, class_names
+    return X_metadata, y
 
 
 # Constants
