@@ -3,12 +3,10 @@ import numpy as np
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import storage
-import iphone_input_img_proc as iphone_proc
-from model import load_model_from_gcs
-import preprocessing
-import data
+from skin_scan import model as md
 
-from skin_scan import preprocessing, model, iphone_input_img_proc, data
+
+from skin_scan import preprocessing
 from io import BytesIO
 from PIL import Image
 
@@ -23,11 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-@app.get("/")
-def root():
-    return {"message": "Skin Scan FastAPI is running!"}
-
 
 @app.get("/")
 def root():
@@ -59,7 +52,7 @@ async def predict(
         X_metadata = preprocessing.run_X_pipeline(X_pred)
 
         # ✅ Load model and predict
-        model = load_model_from_gcs()
+        model = md.load_model_from_gcs()
         result = model.predict([X_image, X_metadata])
         predicted_probs = result[0]
 
