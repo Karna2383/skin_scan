@@ -21,3 +21,4 @@ pillow
 python-dotenv
 python-multipart
 tensorflow
+joblib
