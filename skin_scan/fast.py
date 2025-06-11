@@ -4,12 +4,9 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import storage
 from skin_scan import model as md
-
-
 from skin_scan import preprocessing
 from io import BytesIO
 from PIL import Image
-
 
 app = FastAPI()
 
